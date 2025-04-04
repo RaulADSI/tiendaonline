@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
     @Entity
+    @Table(name = "productos")
     public class Product {
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)

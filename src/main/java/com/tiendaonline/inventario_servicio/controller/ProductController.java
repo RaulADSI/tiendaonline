@@ -1,7 +1,9 @@
 package com.tiendaonline.inventario_servicio.controller;
 
 import com.tiendaonline.inventario_servicio.entity.Product;
+import com.tiendaonline.inventario_servicio.exceptions.ResourceNotFoundExceptions;
 import com.tiendaonline.inventario_servicio.service.ProductService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,29 +34,22 @@ public class ProductController {
     // Crear un nuevo producto
     @GetMapping("/{id}")
     public ResponseEntity<Product> getProduct(@PathVariable Long id){
-        return productService.listProduct().stream()
-                .filter(product -> product.getId().equals(id))
+         Product product = productService.listProduct().stream()
+                .filter(p -> p.getId().equals(id))
                 .findFirst()
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new ResourceNotFoundExceptions.ProductoNotFoundException("Producto: " + id + " no encontrado"));
+        return ResponseEntity.ok(product);
     }
 
     // Actualizar un producto existente
     @PutMapping("/{id}")
     public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product updatedProduct) {
-        return productService.listProduct().stream()
-                .filter(existingProduct -> existingProduct.getId().equals(id))  // Filtrar por el ID que se pasa
-                .findFirst()                                                      // Obtener el producto si existe
-                .map(existingProduct -> {
-                    // Actualiza los campos del producto con los datos nuevos
-                    existingProduct.setName(updatedProduct.getName());
-                    existingProduct.setDescription(updatedProduct.getDescription());
-                    existingProduct.setPrice(updatedProduct.getPrice());
-                    existingProduct.setStock(updatedProduct.getStock());
-                    productService.addProduct(existingProduct);           // Guarda los cambios en la base de datos
-                    return ResponseEntity.ok(existingProduct);                 // Responde con el producto actualizado
-                })
-                .orElse(ResponseEntity.notFound().build());
+        try {
+            Product updated = productService.updateExistingProduct(id, updatedProduct);
+            return ResponseEntity.ok(updated);
+        } catch (ResourceNotFoundExceptions ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
     }
 
 }
