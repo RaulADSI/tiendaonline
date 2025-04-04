@@ -6,6 +6,8 @@ import com.tiendaonline.inventario_servicio.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
+
 
 @Service
 public class ProductService {
@@ -23,6 +25,10 @@ public class ProductService {
     public Product addProduct(Product product){
         return productRepository.save(product);
     }
+
+    public Optional<Product> getProductById(Long id){
+        return productRepository.findById(id);
+    };
 
     public Product updateExistingProduct(Long id, Product updatedProduct) {
         Product existingProduct = listProduct().stream()

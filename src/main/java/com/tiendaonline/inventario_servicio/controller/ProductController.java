@@ -1,6 +1,7 @@
 package com.tiendaonline.inventario_servicio.controller;
 
 import com.tiendaonline.inventario_servicio.entity.Product;
+import com.tiendaonline.inventario_servicio.exceptions.BadRequestException;
 import com.tiendaonline.inventario_servicio.exceptions.ResourceNotFoundExceptions;
 import com.tiendaonline.inventario_servicio.service.ProductService;
 import org.springframework.http.HttpStatus;
@@ -34,11 +35,13 @@ public class ProductController {
     // Crear un nuevo producto
     @GetMapping("/{id}")
     public ResponseEntity<Product> getProduct(@PathVariable Long id){
-         Product product = productService.listProduct().stream()
-                .filter(p -> p.getId().equals(id))
-                .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundExceptions.ProductoNotFoundException("Producto: " + id + " no encontrado"));
+        if (id == null || id <= 0) {
+            throw new BadRequestException("El ID proporcionado no es válido.");
+        }
+        Product product = productService.getProductById(id)
+                .orElseThrow(() -> new ResourceNotFoundExceptions("Producto con ID " + id + " no encontrado"));
         return ResponseEntity.ok(product);
+
     }
 
     // Actualizar un producto existente
